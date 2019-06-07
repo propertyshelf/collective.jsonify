@@ -4,7 +4,8 @@ Changelog
 1.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Add support for custom wrapper class.
+  [tmassman]
 
 
 1.4 (2018-09-20)

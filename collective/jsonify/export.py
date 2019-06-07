@@ -24,6 +24,7 @@ BATCH_SIZE = None
 BATCH_PREVIOUS_PATH = None
 HOMEDIR = '/tmp'
 TMPDIR = HOMEDIR
+CUSTOM_WRAPPER = None
 CLASSNAME_TO_SKIP_LOUD = [
     'BrowserIdManager',
     'Connection',
@@ -182,7 +183,8 @@ def export_content(self,
                    skip_callback=None,
                    batch_start=None,
                    batch_size=None,
-                   batch_previous_path=None):
+                   batch_previous_path=None,
+                   custom_wrapper=None):
     """Export the contents of a Plone site/context to JSON files.
 
     :param self: The folderish context, from where the export should start.
@@ -220,6 +222,9 @@ def export_content(self,
                                 included in previous batches.
     :type batch_previous_path: String
 
+    :param custom_wrapper: The dotted name of the custom wrapper class.
+    :type custom_wrapper: String
+
     :returns: A sucess/fail message with number of exported items.
     :rtype: String
 
@@ -232,6 +237,7 @@ def export_content(self,
     global BATCH_START
     global BATCH_SIZE
     global BATCH_PREVIOUS_PATH
+    global CUSTOM_WRAPPER
 
     COUNTER = 1
     BATCH_START = batch_start
@@ -261,6 +267,8 @@ def export_content(self,
         shutil.rmtree(TMPDIR)
     else:
         os.mkdir(TMPDIR)
+
+    CUSTOM_WRAPPER = custom_wrapper
 
     write(walk(self, skip_callback=skip_callback))
 
@@ -326,6 +334,7 @@ def walk(folder, skip_callback=lambda item: False):
 def write(items):
     global COUNTER
     global BATCH_PREVIOUS_PATH
+    global CUSTOM_WRAPPER
     """
     Batching example table:
         b_start = 0, b_size = 1000, counter = 1000: writes
@@ -358,8 +367,11 @@ def write(items):
 
         json_structure = None
 
+        if CUSTOM_WRAPPER is None or isinstance(CUSTOM_WRAPPER, basestring):
+            CUSTOM_WRAPPER = Wrapper
+
         try:
-            context_dict = Wrapper(item)
+            context_dict = CUSTOM_WRAPPER(item)
         except Exception, e:
             # tb = pprint.pformat(traceback.format_tb(sys.exc_info()[2]))
             # msg = 'ERROR: exception wrapping object: %s\n%s' % (str(e), tb)
